@@ -1,0 +1,31 @@
+{
+    "name": "babenkoivan/fluent-array",
+    "description": "The package provides fluent interface for array management",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Babenko Ivan",
+            "email": "babenko.i.a@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BabenkoIvan\\FluentArray\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BabenkoIvan\\FluentArray\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "tests": "vendor/bin/phpunit -c phpunit.xml"
+    }
+}
