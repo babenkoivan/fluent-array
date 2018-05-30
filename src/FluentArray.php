@@ -2,53 +2,21 @@
 
 namespace BabenkoIvan\FluentArray;
 
-class FluentArray
+class FluentArray implements Configurable
 {
+    use HasConfiguration;
+
     /**
      * @var array
      */
     private $storage = [];
 
     /**
-     * @var FluentArray
-     */
-    private static $defaultConfig;
-
-    /**
-     * @var FluentArray
-     */
-    private $config;
-
-    /**
      * @param FluentArray|null $config
      */
     public function __construct(FluentArray $config = null)
     {
-        $this->config = $config;
-    }
-
-    /**
-     * @return FluentArray
-     */
-    public static function defaultConfig()
-    {
-        if (!isset(static::$defaultConfig)) {
-            static::$defaultConfig = new FluentArray();
-        }
-
-        return static::$defaultConfig;
-    }
-
-    /**
-     * @return FluentArray
-     */
-    public function config()
-    {
-        if (!isset($this->config)) {
-            $this->config = clone static::defaultConfig();
-        }
-
-        return $this->config;
+        $this->config($config);
     }
 
     /**
