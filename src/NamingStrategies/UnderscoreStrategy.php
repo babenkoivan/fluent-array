@@ -10,6 +10,7 @@ class UnderscoreStrategy implements NamingStrategy
      */
     public function transform(string $key): string
     {
-        // TODO: Implement transform() method.
+        $key = preg_replace('/(_+)?[A-Z]+/', ' $0', $key);
+        return strtolower(preg_replace('/[\s_]+/', '_', trim($key)));
     }
 }

@@ -5,10 +5,10 @@ namespace BabenkoIvan\FluentArray;
 interface Configurable
 {
     /**
-     * @param FluentArray|null $defaultConfig
+     * @param FluentArray|null $globalConfig
      * @return mixed
      */
-    public static function defaultConfig(FluentArray $defaultConfig = null);
+    public static function globalConfig(FluentArray $globalConfig = null);
 
     /**
      * @param FluentArray|null $config

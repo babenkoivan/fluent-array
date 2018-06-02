@@ -2,6 +2,8 @@
 
 namespace BabenkoIvan\FluentArray;
 
+use BabenkoIvan\FluentArray\NamingStrategies\UnderscoreStrategy;
+
 class FluentArray implements Configurable
 {
     use HasConfiguration;
@@ -16,7 +18,9 @@ class FluentArray implements Configurable
      */
     public function __construct(FluentArray $config = null)
     {
-        $this->config($config);
+        if (isset($config)) {
+            $this->config($config);
+        }
     }
 
     /**
@@ -26,15 +30,7 @@ class FluentArray implements Configurable
      */
     public function when($condition, callable $callback)
     {
-        if (is_callable($condition)) {
-            $condition->bindTo($this);
-            $invokeCallback = $condition();
-        } else {
-            $invokeCallback = $condition;
-        }
-
-        if ($invokeCallback) {
-            $callback->bindTo($this);
+        if (is_callable($condition) ? $condition() : $condition) {
             return $callback();
         }
 
@@ -84,6 +80,19 @@ class FluentArray implements Configurable
     }
 
     /**
+     * @param string $macro
+     * @return bool
+     */
+    public function hasMacro(string $macro): bool
+    {
+        $config = $this->config();
+
+        return
+            $config->has('macros') &&
+            $config->macros()->has($macro);
+    }
+
+    /**
      * @param $value
      * @return self
      */
@@ -106,16 +115,109 @@ class FluentArray implements Configurable
     }
 
     /**
-     * @param string $macro
-     * @return bool
+     * @param callable $callback
+     * @return FluentArray
      */
-    public function hasMacro(string $macro): bool
+    public function map(callable $callback)
     {
+        $array = array_map($callback, $this->storage, array_keys($this->storage));
+        return static::fromArray($array);
+    }
+
+    /**
+     * @param callable $callback
+     * @return $this
+     */
+    public function each(callable $callback)
+    {
+        foreach ($this->storage as $key => $value) {
+            $key = $this->transformKey($key);
+
+            if ($callback($value, $key) === false) {
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param array $array
+     * @return FluentArray
+     */
+    public static function fromArray(array $array)
+    {
+        $fluentArray = new static();
+
+        foreach ($array as $key => $value) {
+            $fluentArray->set($key, is_array($value) ? static::fromArray($value) : $value);
+        }
+
+        return $fluentArray;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return array_map(function ($value) {
+            return $value instanceof static ? $value->toArray() : $value;
+        }, $this->storage);
+    }
+
+    /**
+     * @param string $method
+     * @param array $args
+     * @return mixed
+     */
+    public function __call(string $method, array $args)
+    {
+        // process macros
+        if ($this->hasMacro($method)) {
+            return $this->callMacro($method, $args);
+        }
+
+        // process fluent has
+        if (preg_match('/^has(.+?)$/', $method, $match)) {
+            $key = $this->transformKey(lcfirst($match[1]));
+            return $this->has($key);
+        }
+
+        // process fluent getter
+        if (count($args) == 0) {
+            $key = $this->transformKey(ltrim($method, '\\'));
+
+            if ($this->has($key)) {
+                return $this->get($key);
+            }
+        }
+
+        // process fluent setter
+        return $this->callSet($method, $args);
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    protected function transformKey(string $key)
+    {
+        $defaultConfig = static::defaultConfig();
         $config = $this->config();
 
-        return
-            $config->has('macros') &&
-            $config->macros()->has($macro);
+        $keyTransformation = array_merge(
+            $config->get('key_transformation') ?? [],
+            $defaultConfig->get('key_transformation')
+        );
+
+        if (isset($keyTransformation[$key])) {
+            return $keyTransformation[$key];
+        }
+
+        $namingStrategy = $config->get('naming_strategy') ?? $defaultConfig->get('naming_strategy');
+
+        return $namingStrategy->transform($key);
     }
 
     /**
@@ -127,51 +229,11 @@ class FluentArray implements Configurable
     {
         $closure = $this
             ->config()
-            ->macros()
-            ->$macro()
+            ->get('macros')
+            ->get($macro)
             ->bindTo($this);
 
         return $closure(...$args);
-    }
-
-    /**
-     * @param string $key
-     * @param array $args
-     * @return mixed
-     */
-    protected function callSet(string $key, array $args)
-    {
-        $self = $this;
-
-        preg_match('/^(.+?)(When)?$/', $key, $match);
-
-        $realKey = $match[1];
-        $condition = isset($match[2]) ? array_shift($args) : true;
-
-        switch (count($args)) {
-            case 0:
-                $config = clone static::defaultConfig();
-
-                if (!$config->has('macros')) {
-                    $config->set('macros', new FluentArray());
-                }
-
-                $config
-                    ->get('macros')
-                    ->set('end' . ucfirst($key), function () use ($self, $condition, $realKey) {
-                        $self->setWhen($condition, $realKey, $this);
-                        return $self;
-                    });
-
-                return new FluentArray($config);
-                break;
-            case 1:
-                return $this->setWhen($condition, $realKey, $args[0]);
-                break;
-            default:
-                return $this->setWhen($condition, $realKey, $args);
-                break;
-        }
     }
 
     /**
@@ -179,32 +241,52 @@ class FluentArray implements Configurable
      * @param array $args
      * @return mixed
      */
-    public function __call(string $method, array $args)
+    protected function callSet(string $method, array $args)
     {
-        if ($this->hasMacro($method)) {
-            return $this->callMacro($method, $args);
+        $self = $this;
+
+        preg_match('/^(\\\)?(.+?)(When)?$/', $method, $match);
+
+        $key = $this->transformKey($match[2]);
+        $condition = isset($match[3]) ? array_shift($args) : true;
+
+        switch (count($args)) {
+            case 0:
+                $config = clone static::globalConfig();
+
+                if (!$config->has('macros')) {
+                    $config->set('macros', new static());
+                }
+
+                $config
+                    ->get('macros')
+                    ->set('end' . ucfirst($method), function () use ($self, $condition, $key) {
+                        $self->setWhen($condition, $key, $this);
+                        return $self;
+                    });
+
+                return new static($config);
+                break;
+            case 1:
+                return $this->setWhen($condition, $key, $args[0]);
+                break;
+            default:
+                return $this->setWhen($condition, $key, $args);
+                break;
         }
-
-        if (preg_match('/^has(.+?)$/', $method, $match)) {
-            return $this->has(lcfirst($match[1]));
-        }
-
-        $key = ltrim($method, '\\');
-
-        if (count($args) == 0 && $this->has($key)) {
-            return $this->get($key);
-        }
-
-        return $this->callSet($key, $args);
     }
 
     /**
-     * @return array
+     * @return FluentArray
      */
-    public function toArray(): array
+    protected static function defaultConfig()
     {
-        return array_map(function ($value) {
-            return $value instanceof FluentArray ? $value->toArray() : $value;
-        }, $this->storage);
+        return (new FluentArray())
+            ->set('naming_strategy', new UnderscoreStrategy())
+            ->set('key_transformation', [
+                'keyTransformation' => 'key_transformation',
+                'namingStrategy' => 'naming_strategy',
+                'macros' => 'macros'
+            ]);
     }
 }

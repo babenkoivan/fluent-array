@@ -10,6 +10,7 @@ class CamelCaseStrategy implements NamingStrategy
      */
     public function transform(string $key): string
     {
-        // TODO: Implement transform() method.
+        $key = preg_replace('/([\W_]+)/', ' ', $key);
+        return str_replace(' ', '', ucwords($key));
     }
 }

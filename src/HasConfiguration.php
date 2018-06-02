@@ -7,7 +7,7 @@ trait HasConfiguration
     /**
      * @var FluentArray
      */
-    private static $defaultConfig;
+    private static $globalConfig;
 
     /**
      * @var FluentArray
@@ -15,19 +15,19 @@ trait HasConfiguration
     private $config;
 
     /**
-     * @param FluentArray|null $defaultConfig
+     * @param FluentArray|null $globalConfig
      * @return mixed
      */
-    public static function defaultConfig(FluentArray $defaultConfig = null)
+    public static function globalConfig(FluentArray $globalConfig = null)
     {
-        if (isset($defaultConfig)) {
-            static::$defaultConfig = $defaultConfig;
+        if (isset($globalConfig)) {
+            static::$globalConfig = $globalConfig;
         } else {
-            if (!isset(static::$defaultConfig)) {
-                static::$defaultConfig = new FluentArray();
+            if (!isset(static::$globalConfig)) {
+                static::$globalConfig = static::defaultConfig();
             }
 
-            return static::$defaultConfig;
+            return static::$globalConfig;
         }
     }
 
@@ -42,10 +42,18 @@ trait HasConfiguration
             return $this;
         } else {
             if (!isset($this->config)) {
-                $this->config = clone static::defaultConfig();
+                $this->config = clone static::globalConfig();
             }
 
             return $this->config;
         }
+    }
+
+    /**
+     * @return FluentArray
+     */
+    protected static function defaultConfig(): FluentArray
+    {
+        return new FluentArray();
     }
 }
