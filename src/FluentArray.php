@@ -3,18 +3,20 @@
 namespace BabenkoIvan\FluentArray;
 
 use BabenkoIvan\FluentArray\NamingStrategies\UnderscoreStrategy;
+use Countable;
+use Serializable;
 
-class FluentArray implements Configurable
+class FluentArray implements Configurable, Countable, Serializable
 {
     use HasConfiguration;
 
     /**
      * @var array
      */
-    private $storage = [];
+    protected $storage = [];
 
     /**
-     * @param FluentArray|null $config
+     * @param self|null $config
      */
     public function __construct(FluentArray $config = null)
     {
@@ -26,12 +28,15 @@ class FluentArray implements Configurable
     /**
      * @param callable|bool $condition
      * @param callable $callback
+     * @param callable|null $default
      * @return mixed
      */
-    public function when($condition, callable $callback)
+    public function when($condition, callable $callback, callable $default = null)
     {
-        if (is_callable($condition) ? $condition() : $condition) {
-            return $callback();
+        if (is_callable($condition) ? $condition($this) : $condition) {
+            return $callback($this);
+        } elseif ($default) {
+            return $default($this);
         }
 
         return $this;
@@ -51,9 +56,9 @@ class FluentArray implements Configurable
      * @param mixed $value
      * @return self
      */
-    public function set(string $key, $value): self
+    public function set(string $key, $value)
     {
-        $this->storage[$key] = $value;
+        $this->storage[$key] = is_array($value) ? static::fromArray($value) : $value;
         return $this;
     }
 
@@ -63,7 +68,7 @@ class FluentArray implements Configurable
      * @param mixed $value
      * @return self
      */
-    public function setWhen($condition, string $key, $value): self
+    public function setWhen($condition, string $key, $value)
     {
         return $this->when($condition, function () use ($key, $value) {
             return $this->set($key, $value);
@@ -76,29 +81,16 @@ class FluentArray implements Configurable
      */
     public function get(string $key)
     {
-        return $this->storage[$key];
-    }
-
-    /**
-     * @param string $macro
-     * @return bool
-     */
-    public function hasMacro(string $macro): bool
-    {
-        $config = $this->config();
-
-        return
-            $config->has('macros') &&
-            $config->macros()->has($macro);
+        return $this->has($key) ? $this->storage[$key] : null;
     }
 
     /**
      * @param $value
      * @return self
      */
-    public function push($value): self
+    public function push($value)
     {
-        $this->storage[] = $value;
+        $this->storage[] = is_array($value) ? static::fromArray($value) : $value;
         return $this;
     }
 
@@ -107,7 +99,7 @@ class FluentArray implements Configurable
      * @param mixed $value
      * @return self
      */
-    public function pushWhen($condition, $value): self
+    public function pushWhen($condition, $value)
     {
         return $this->when($condition, function () use ($value) {
             return $this->push($value);
@@ -115,18 +107,106 @@ class FluentArray implements Configurable
     }
 
     /**
-     * @param callable $callback
-     * @return FluentArray
+     * @param string $key
+     * @return self
      */
-    public function map(callable $callback)
+    public function unset(string $key)
     {
-        $array = array_map($callback, $this->storage, array_keys($this->storage));
-        return static::fromArray($array);
+        if ($this->has($key)) {
+            unset($this->storage[$key]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    public function clean()
+    {
+        $this->storage = [];
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function first()
+    {
+        return reset($this->storage);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function last()
+    {
+        return end($this->storage);
+    }
+
+    /**
+     * @return array
+     */
+    public function all(): array
+    {
+        return $this->storage;
+    }
+
+    /**
+     * @param string $key
+     * @return self
+     */
+    public function pluck(string $key)
+    {
+        $fluentArray = new static();
+
+        $this->each(function ($item) use ($key, $fluentArray) {
+            if ($item instanceof static && $item->has($key)) {
+                $value = $item->get($key);
+                $fluentArray->push($value);
+            }
+        });
+
+        return $fluentArray;
+    }
+
+    /**
+     * @return array
+     */
+    public function keys(): array
+    {
+        return array_keys($this->storage);
+    }
+
+    /**
+     * @return array
+     */
+    public function values(): array
+    {
+        return array_values($this->storage);
+    }
+
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->storage);
     }
 
     /**
      * @param callable $callback
-     * @return $this
+     * @return self
+     */
+    public function map(callable $callback)
+    {
+        $values = array_map($callback, $this->values(), $this->keys());
+        return static::fromArray(array_combine($this->keys(), $values));
+    }
+
+    /**
+     * @param callable $callback
+     * @return self
      */
     public function each(callable $callback)
     {
@@ -143,14 +223,14 @@ class FluentArray implements Configurable
 
     /**
      * @param array $array
-     * @return FluentArray
+     * @return self
      */
     public static function fromArray(array $array)
     {
         $fluentArray = new static();
 
         foreach ($array as $key => $value) {
-            $fluentArray->set($key, is_array($value) ? static::fromArray($value) : $value);
+            $fluentArray->set($key, $value);
         }
 
         return $fluentArray;
@@ -161,9 +241,46 @@ class FluentArray implements Configurable
      */
     public function toArray(): array
     {
-        return array_map(function ($value) {
+        $values = array_map(function ($value) {
             return $value instanceof static ? $value->toArray() : $value;
-        }, $this->storage);
+        }, $this->values(), $this->keys());
+
+        return array_combine($this->keys(), $values);
+    }
+
+    /**
+     * @param string $json
+     * @return self
+     */
+    public static function fromJson(string $json)
+    {
+        $array = json_decode($json, true);
+        return static::fromArray($array);
+    }
+
+    /**
+     * @return string
+     */
+    public function toJson(): string
+    {
+        $array = $this->toArray();
+        return json_encode($array);
+    }
+
+    /**
+     * @return string
+     */
+    public function serialize(): string
+    {
+        return serialize($this->storage);
+    }
+
+    /**
+     * @param string $serialized
+     */
+    public function unserialize($serialized)
+    {
+        $this->storage = unserialize($serialized);
     }
 
     /**
@@ -178,10 +295,10 @@ class FluentArray implements Configurable
             return $this->callMacro($method, $args);
         }
 
-        // process fluent has
-        if (preg_match('/^has(.+?)$/', $method, $match)) {
-            $key = $this->transformKey(lcfirst($match[1]));
-            return $this->has($key);
+        // process fluent has, pluck and unset
+        if (preg_match('/^(has|pluck|unset)(.+?)$/', $method, $match)) {
+            $key = $this->transformKey(lcfirst($match[2]));
+            return $this->{$match[1]}($key);
         }
 
         // process fluent getter
@@ -206,18 +323,21 @@ class FluentArray implements Configurable
         $defaultConfig = static::defaultConfig();
         $config = $this->config();
 
-        $keyTransformation = array_merge(
-            $config->get('key_transformation') ?? [],
-            $defaultConfig->get('key_transformation')
-        );
-
-        if (isset($keyTransformation[$key])) {
-            return $keyTransformation[$key];
-        }
-
         $namingStrategy = $config->get('naming_strategy') ?? $defaultConfig->get('naming_strategy');
-
         return $namingStrategy->transform($key);
+    }
+
+    /**
+     * @param string $macro
+     * @return bool
+     */
+    protected function hasMacro(string $macro): bool
+    {
+        $config = $this->config();
+
+        return
+            $config->has('macros') &&
+            $config->macros()->has($macro);
     }
 
     /**
@@ -277,16 +397,11 @@ class FluentArray implements Configurable
     }
 
     /**
-     * @return FluentArray
+     * @return self
      */
     protected static function defaultConfig()
     {
-        return (new FluentArray())
-            ->set('naming_strategy', new UnderscoreStrategy())
-            ->set('key_transformation', [
-                'keyTransformation' => 'key_transformation',
-                'namingStrategy' => 'naming_strategy',
-                'macros' => 'macros'
-            ]);
+        return (new static())
+            ->set('naming_strategy', new UnderscoreStrategy());
     }
 }
