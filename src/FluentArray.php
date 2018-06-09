@@ -211,8 +211,6 @@ class FluentArray implements Configurable, Countable, Serializable
     public function each(callable $callback)
     {
         foreach ($this->storage as $key => $value) {
-            $key = $this->transformKey($key);
-
             if ($callback($value, $key) === false) {
                 break;
             }

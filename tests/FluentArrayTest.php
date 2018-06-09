@@ -283,7 +283,20 @@ class FluentArrayTest extends TestCase
 
     public function testEachMethod()
     {
-        // todo implement
+        $values = [];
+
+        (new FluentArray())
+            ->set('foo', 1)
+            ->set('bar', 2)
+            ->each(function ($value, $key) use (&$values) {
+                if ($key == 'bar') {
+                    return false;
+                }
+
+                $values[] = $value;
+            });
+
+        $this->assertSame([1], $values);
     }
 
     public function testFromArrayMethod()
