@@ -2,11 +2,12 @@
 
 namespace BabenkoIvan\FluentArray;
 
+use ArrayAccess;
 use BabenkoIvan\FluentArray\NamingStrategies\UnderscoreStrategy;
 use Countable;
 use Serializable;
 
-class FluentArray implements Configurable, Countable, Serializable
+class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
 {
     use HasConfiguration;
 
@@ -126,6 +127,45 @@ class FluentArray implements Configurable, Countable, Serializable
     {
         $this->storage = [];
         return $this;
+    }
+
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        if (is_null($offset)) {
+            $this->push($value);
+        } else {
+            $this->set($offset, $value);
+        }
+    }
+
+    /**
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return $this->has($offset);
+    }
+
+    /**
+     * @param mixed $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset)
+    {
+        $this->unset($offset);
     }
 
     /**

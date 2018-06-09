@@ -63,6 +63,7 @@ class FluentArrayTest extends TestCase
         $this->assertInstanceOf(FluentArray::class, $fluentArray->get('bar')->get('second'));
         $this->assertSame(3, $fluentArray->get('bar')->get('second')->get(0));
         $this->assertSame(4, $fluentArray->get('bar')->get('second')->get(1));
+        $this->assertNull($fluentArray->get('null'));
     }
 
     public function testFluentSetAndGetMethods()
@@ -160,6 +161,49 @@ class FluentArrayTest extends TestCase
 
         $this->assertFalse($fluentArray->has('foo'));
         $this->assertFalse($fluentArray->has('bar'));
+    }
+
+    public function testOffsetSetMethod()
+    {
+        $fluentArray = new FluentArray();
+
+        $fluentArray[] = 1;
+        $fluentArray['foo'] = ['bar' => 2];
+
+        $this->assertSame(1, $fluentArray->get(0));
+        $this->assertInstanceOf(FluentArray::class, $fluentArray->get('foo'));
+        $this->assertSame(2, $fluentArray->get('foo')->get('bar'));
+    }
+
+    public function testOffsetExistsMethod()
+    {
+        $fluentArray = (new FluentArray())->set('foo', 1);
+
+        $this->assertTrue(isset($fluentArray['foo']));
+        $this->assertFalse(isset($fluentArray['bar']));
+    }
+
+    public function testOffsetGetMethod()
+    {
+        $fluentArray = (new FluentArray())
+            ->set('foo', 1)
+            ->push(2);
+
+        $this->assertSame(1, $fluentArray['foo']);
+        $this->assertSame(2, $fluentArray[0]);
+        $this->assertNull($fluentArray['bar']);
+    }
+
+    public function testOffsetUnsetMethod()
+    {
+        $fluentArray = (new FluentArray())
+            ->set('foo', 1)
+            ->set('bar', 2);
+
+        unset($fluentArray['foo']);
+
+        $this->assertNull($fluentArray->get('foo'));
+        $this->assertSame(2, $fluentArray->get('bar'));
     }
 
     public function testFirstMethod()
