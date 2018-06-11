@@ -198,7 +198,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
      */
     public function pluck(string $key)
     {
-        $fluentArray = new static();
+        $fluentArray = clone $this;
 
         $this->each(function ($item) use ($key, $fluentArray) {
             if ($item instanceof static && $item->has($key)) {
@@ -235,13 +235,72 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
     }
 
     /**
+     * @param int $sortFlags
+     * @return self
+     */
+    public function sort(int $sortFlags = SORT_REGULAR)
+    {
+        asort($this->storage, $sortFlags);
+        return $this;
+    }
+
+    /**
+     * @param int $sortFlags
+     * @return self
+     */
+    public function rsort(int $sortFlags = SORT_REGULAR)
+    {
+        arsort($this->storage, $sortFlags);
+        return $this;
+    }
+
+    /**
+     * @param callable $callback
+     * @return self
+     */
+    public function usort(callable $callback)
+    {
+        usort($this->storage, $callback);
+        return $this;
+    }
+
+    /**
+     * @param int $sortFlags
+     * @return self
+     */
+    public function ksort(int $sortFlags = SORT_REGULAR)
+    {
+        ksort($this->storage, $sortFlags);
+        return $this;
+    }
+
+    /**
+     * @param int $sortFlags
+     * @return self
+     */
+    public function krsort(int $sortFlags = SORT_REGULAR)
+    {
+        krsort($this->storage, $sortFlags);
+        return $this;
+    }
+
+    /**
      * @param callable $callback
      * @return self
      */
     public function map(callable $callback)
     {
+        $keys = $this->keys();
         $values = array_map($callback, $this->values(), $this->keys());
-        return static::fromArray(array_combine($this->keys(), $values));
+
+        $fluentArray = clone $this;
+
+        foreach ($values as $index => $value) {
+            $key = $keys[$index];
+            $fluentArray->set($key, $value);
+        }
+
+        return $fluentArray;
     }
 
     /**
@@ -257,6 +316,23 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
         }
 
         return $this;
+    }
+
+    /**
+     * @param callable|null $callback
+     * @return self
+     */
+    public function filter(callable $callback = null)
+    {
+        $fluentArray = clone $this;
+
+        $this->each(function($value, $key) use ($callback, $fluentArray) {
+            if (isset($callback) ? $callback($value, $key) : !empty($value)) {
+                $fluentArray->set($key, $value);
+            }
+        });
+
+        return $fluentArray;
     }
 
     /**
@@ -319,6 +395,11 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
     public function unserialize($serialized)
     {
         $this->storage = unserialize($serialized);
+    }
+
+    public function __clone()
+    {
+        $this->clean();
     }
 
     /**

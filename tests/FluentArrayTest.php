@@ -301,14 +301,97 @@ class FluentArrayTest extends TestCase
         $this->assertCount(3, $fluentArray);
     }
 
-    public function testAsortMethod()
+    public function testSortMethod()
     {
-        // todo implement
+        $fluentArray = (new FluentArray())
+            ->push('10')
+            ->set('foo', 1)
+            ->set('bar', 5);
+
+        $this->assertSame(
+            ['foo' => 1, 'bar' => 5, '10'],
+            $fluentArray->sort()->toArray()
+        );
+
+        $this->assertSame(
+            ['foo' => 1, '10', 'bar' => 5],
+            $fluentArray->sort(SORT_STRING)->toArray()
+        );
+    }
+
+    public function testRsortMethod()
+    {
+        $fluentArray = (new FluentArray())
+            ->push('10')
+            ->set('foo', 1)
+            ->set('bar', 5);
+
+        $this->assertSame(
+            ['10', 'bar' => 5, 'foo' => 1],
+            $fluentArray->rsort()->toArray()
+        );
+
+        $this->assertSame(
+            ['bar' => 5, '10', 'foo' => 1],
+            $fluentArray->rsort(SORT_STRING)->toArray()
+        );
+    }
+
+    public function testUsortMethod()
+    {
+        $sourceFluentArray = (new FluentArray())
+            ->push(7)
+            ->push(1)
+            ->push(5);
+
+        $resultFluentArray = $sourceFluentArray->usort(function ($a, $b) {
+            return $a <=> $b;
+        });
+
+        $this->assertSame(
+            [1, 5, 7],
+            $resultFluentArray->toArray()
+        );
     }
 
     public function testKsortMethod()
     {
-        // todo implement
+        $fluentArray = (new FluentArray())
+            ->set('2', 10)
+            ->set('10', 3)
+            ->set('1', 8)
+            ->set('a', 1)
+            ->set('b', 5);
+
+        $this->assertSame(
+            ['a' => 1, 'b' => 5, '1' => 8, '2' => 10, '10' => 3],
+            $fluentArray->ksort()->toArray()
+        );
+
+        $this->assertSame(
+            ['1' => 8, '10' => 3, '2' => 10, 'a' => 1, 'b' => 5],
+            $fluentArray->ksort(SORT_STRING)->toArray()
+        );
+    }
+
+    public function testKrsortMethod()
+    {
+        $fluentArray = (new FluentArray())
+            ->set('2', 10)
+            ->set('10', 3)
+            ->set('1', 8)
+            ->set('a', 1)
+            ->set('b', 5);
+
+        $this->assertSame(
+            ['10' => 3, '2' => 10, '1' => 8, 'b' => 5, 'a' => 1],
+            $fluentArray->krsort()->toArray()
+        );
+
+        $this->assertSame(
+            ['b' => 5, 'a' => 1, '2' => 10, '10' => 3, '1' => 8],
+            $fluentArray->krsort(SORT_STRING)->toArray()
+        );
     }
 
     public function testMapMethod()
@@ -341,6 +424,25 @@ class FluentArrayTest extends TestCase
             });
 
         $this->assertSame([1], $values);
+    }
+
+    public function testFilterMethod()
+    {
+        $sourceFluentArray = (new FluentArray())
+            ->set('foo', 0)
+            ->set('bar', 3);
+
+        $resultFluentArray = $sourceFluentArray->filter();
+
+        $this->assertNull($resultFluentArray->get('foo'));
+        $this->assertSame(3, $resultFluentArray->get('bar'));
+
+        $resultFluentArray = $sourceFluentArray->filter(function ($value, $key) {
+            return $key == 'foo';
+        });
+
+        $this->assertSame(0, $resultFluentArray->get('foo'));
+        $this->assertNull($resultFluentArray->get('bar'));
     }
 
     public function testFromArrayMethod()
@@ -422,5 +524,25 @@ class FluentArrayTest extends TestCase
         $this->assertInstanceOf(FluentArray::class, $fluentArray->get('bar'));
         $this->assertSame(3, $fluentArray->get('bar')->get(0));
         $this->assertSame(4, $fluentArray->get('bar')->get(1));
+    }
+
+    public function testCloning()
+    {
+        $fluentArrayConfig = FluentArray::globalConfig()
+            ->set('option', 'value');
+
+        $sourceFluentArray = (new FluentArray($fluentArrayConfig))
+            ->push(1)
+            ->set('foo', 'bar');
+
+        $clonedFluentArray = clone $sourceFluentArray;
+
+        $this->assertSame(
+            'value',
+            $clonedFluentArray->config()->get('option')
+        );
+
+        $this->assertNull($clonedFluentArray->get(0));
+        $this->assertNull($clonedFluentArray->get('foo'));
     }
 }
