@@ -3,11 +3,21 @@
 namespace BabenkoIvan\FluentArray\Tests;
 
 use BabenkoIvan\FluentArray\FluentArray;
+use BabenkoIvan\FluentArray\NamingStrategies\UnderscoreStrategy;
 use PHPUnit\Framework\TestCase;
 
 class FluentArrayTest extends TestCase
 {
-    // todo configuration tests
+    public function testConstruction()
+    {
+        $config = (new FluentArray())->set('foo', 'bar');
+        $fluentArray = new FluentArray($config);
+
+        $this->assertSame(
+            $fluentArray->config(),
+            $config
+        );
+    }
 
     public function testWhenMethod()
     {
@@ -204,6 +214,24 @@ class FluentArrayTest extends TestCase
 
         $this->assertNull($fluentArray->get('foo'));
         $this->assertSame(2, $fluentArray->get('bar'));
+    }
+
+    public function testIteration()
+    {
+        $iterationResult = [];
+
+        $fluentArray = (new FluentArray())
+            ->set('foo', 1)
+            ->set('bar', 2);
+
+        foreach ($fluentArray as $key => $value) {
+            $iterationResult[$key] = $value;
+        }
+
+        $this->assertSame(
+            ['foo' => 1, 'bar' => 2],
+            $iterationResult
+        );
     }
 
     public function testFirstMethod()
@@ -526,23 +554,12 @@ class FluentArrayTest extends TestCase
         $this->assertSame(4, $fluentArray->get('bar')->get(1));
     }
 
-    public function testCloning()
+    public function testDefaultConfig()
     {
-        $fluentArrayConfig = FluentArray::globalConfig()
-            ->set('option', 'value');
+        $fluentArray = new FluentArray();
+        $config = $fluentArray->config();
 
-        $sourceFluentArray = (new FluentArray($fluentArrayConfig))
-            ->push(1)
-            ->set('foo', 'bar');
-
-        $clonedFluentArray = clone $sourceFluentArray;
-
-        $this->assertSame(
-            'value',
-            $clonedFluentArray->config()->get('option')
-        );
-
-        $this->assertNull($clonedFluentArray->get(0));
-        $this->assertNull($clonedFluentArray->get('foo'));
+        $this->assertInstanceOf(FluentArray::class, $config);
+        $this->assertInstanceOf(UnderscoreStrategy::class, $config->get('naming_strategy'));
     }
 }

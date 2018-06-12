@@ -52,7 +52,7 @@ trait HasConfiguration
     /**
      * @return FluentArray
      */
-    protected static function defaultConfig(): FluentArray
+    protected static function defaultConfig()
     {
         return new FluentArray();
     }

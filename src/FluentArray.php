@@ -3,11 +3,13 @@
 namespace BabenkoIvan\FluentArray;
 
 use ArrayAccess;
+use ArrayIterator;
 use BabenkoIvan\FluentArray\NamingStrategies\UnderscoreStrategy;
 use Countable;
+use IteratorAggregate;
 use Serializable;
 
-class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
+class FluentArray implements Configurable, Countable, Serializable, ArrayAccess, IteratorAggregate
 {
     use HasConfiguration;
 
@@ -169,6 +171,14 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
     }
 
     /**
+     * @return ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new ArrayIterator($this->storage);
+    }
+
+    /**
      * @return mixed
      */
     public function first()
@@ -198,7 +208,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
      */
     public function pluck(string $key)
     {
-        $fluentArray = clone $this;
+        $fluentArray = new static($this->config);
 
         $this->each(function ($item) use ($key, $fluentArray) {
             if ($item instanceof static && $item->has($key)) {
@@ -293,7 +303,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
         $keys = $this->keys();
         $values = array_map($callback, $this->values(), $this->keys());
 
-        $fluentArray = clone $this;
+        $fluentArray = new static($this->config);
 
         foreach ($values as $index => $value) {
             $key = $keys[$index];
@@ -324,7 +334,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
      */
     public function filter(callable $callback = null)
     {
-        $fluentArray = clone $this;
+        $fluentArray = new static($this->config);
 
         $this->each(function($value, $key) use ($callback, $fluentArray) {
             if (isset($callback) ? $callback($value, $key) : !empty($value)) {
@@ -395,11 +405,6 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess
     public function unserialize($serialized)
     {
         $this->storage = unserialize($serialized);
-    }
-
-    public function __clone()
-    {
-        $this->clean();
     }
 
     /**
