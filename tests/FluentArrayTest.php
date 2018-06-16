@@ -88,8 +88,8 @@ class FluentArrayTest extends TestCase
                 ->two(2)
                 ->bar()
                     ->three(3)
-                ->endBar()
-            ->endFoo();
+                ->end()
+            ->end();
         // @formatter:on
 
         $this->assertSame(1, $fluentArray->foo()->one());
@@ -552,6 +552,26 @@ class FluentArrayTest extends TestCase
         $this->assertInstanceOf(FluentArray::class, $fluentArray->get('bar'));
         $this->assertSame(3, $fluentArray->get('bar')->get(0));
         $this->assertSame(4, $fluentArray->get('bar')->get(1));
+    }
+
+    public function testCloning()
+    {
+        $sourceFluentArray = (new FluentArray())
+            ->set('int', 123)
+            ->set('fluent_arr', (new FluentArray())->set('arr', ['foo' => 'bar']));
+
+        $clonedFluentArray = clone $sourceFluentArray;
+
+        $sourceFluentArray
+            ->set('int', 456)
+            ->get('fluent_arr')
+            ->get('arr')
+            ->unset('foo');
+
+        $this->assertSame(123, $clonedFluentArray->get('int'));
+        $this->assertInstanceOf(FluentArray::class, $clonedFluentArray->get('fluent_arr'));
+        $this->assertInstanceOf(FluentArray::class, $clonedFluentArray->get('fluent_arr')->get('arr'));
+        $this->assertSame('bar', $clonedFluentArray->get('fluent_arr')->get('arr')->get('foo'));
     }
 
     public function testDefaultConfig()
