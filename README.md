@@ -31,10 +31,10 @@
 * [each](#each)
 * [filter](#filter)
 * [first](#first)
-* [fromArray](#from-array)
-* [fromJson](#from-json)
+* [fromArray](#fromarray)
+* [fromJson](#fromjson)
 * [get](#get)
-* [globalConfig](#global-config)
+* [globalConfig](#globalconfig)
 * [has](#has)
 * [keys](#keys)
 * [krsort](#krsort)
@@ -42,14 +42,14 @@
 * [last](#last)
 * [map](#map)
 * [pluck](#pluck)
-* [pushWhen](#push-when)
+* [pushWhen](#pushwhen)
 * [push](#push)
 * [rsort](#rsort)
-* [setWhen](#set-when)
+* [setWhen](#setwhen)
 * [set](#set)
 * [sort](#sort)
-* [toArray](#to-array)
-* [toJson](#to-json)
+* [toArray](#toarray)
+* [toJson](#tojson)
 * [unset](#unset)
 * [usort](#usort)
 * [values](#values)
@@ -257,7 +257,7 @@ FluentArray::globalConfig()->get('naming_strategy');
 
 #### has
 
-The `has` method checks if a given key exists in [the storage array](#storage-array).
+The `has` method checks if the given key exists in [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -287,7 +287,7 @@ $fluentArray->keys();
 #### krsort
 
 The `krsort` method sorts [the storage array](#storage-array) by keys in descending order.
-You can specify sort flags as a first parameter.
+You can specify sort flags as a first argument.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -329,8 +329,8 @@ $fluentArray->last();
 
 #### map
 
-The `map` method applies a given callback to all items in [the storage array](#storage-array) 
-and returns a new fluent array instance. 
+The `map` method applies the given callback to all items in [the storage array](#storage-array) 
+and returns a new fluent array. 
 
 ```php
 $sourceFluentArray = (new FluentArray())
@@ -347,7 +347,7 @@ $resultFluentArray->all();
 
 #### pluck
 
-The `pluck` method extracts item values from child fluent arrays to a new fluent array instance by a given key.
+The `pluck` method extracts item values from child fluent arrays to a new fluent array by the given key.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -360,7 +360,7 @@ $fluentArray->pluck('id')->all();
 
 #### push
 
-The `push` method appends a given value to [the storage array](#storage-array).
+The `push` method appends the given value to [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -373,25 +373,194 @@ $fluentArray->all();
 
 #### pushWhen
 
+The `pushWhen` method appends the given value to [the storage array](#storage-array), 
+if the first argument is equivalent to `true`.
+
+```php
+$fluentArray = (new FluentArray())
+    ->pushWhen(true, 1)
+    ->pushWhen(false, 2)
+    ->pushWhen(function () { return true; }, 3);
+    
+$fluentArray->all();
+// [1, 3]    
+```
+
 #### rsort
+
+The `rsort` method sorts [the storage array](#storage-array) in descending order.
+You can specify sort flags as a first parameter.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('three', 3)
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->rsort(SORT_NUMERIC)->all();
+// ['three' => 3, 'two' => 2, 'one' => 1]    
+```
 
 #### set
 
+The `set` method sets the given key and value in [the storage array](#storage-array).
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->all();
+// ['one' => 1, 'two' => 2]    
+```
+
 #### setWhen
+
+The `setWhen` method sets the given key and value in [the storage array](#storage-array),
+if the first argument is equivalent to `true`.  
+
+```php
+$fluentArray = (new FluentArray())
+    ->setWhen(true, 'one', 1)
+    ->setWhen(false, 'two', 2)
+    ->setWhen(function () { return true; }, 'three', 3);
+    
+$fluentArray->all();
+// ['one' => 1, 'three' => 3]    
+```
 
 #### sort
 
+The `sort` method sorts [the storage array](#storage-array) in ascending order.
+You can specify sort flags as a first parameter.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('three', 3)
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->sort(SORT_NUMERIC)->all();
+// ['one' => 1, 'two' => 2, 'three' => 3]    
+```
+
 #### toArray
+
+The `toArray` method converts a fluent array to an array.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+
+$fluentArray->toArray();
+// ['one' => 1, 'two' => 2]
+```
 
 #### toJson
 
+The `toJson` method converts a fluent array to JSON.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+
+$fluentArray->toJson();
+// "{"one":1,"two":2}"
+```
+
 #### unset
+
+The `unset` method removes [the storage array](#storage-array) value by the given key.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->unset('one')->all();
+// ['two' => 2]    
+```
 
 #### usort
 
+The `usort` method sorts [the storage array](#storage-array) using the given comparison function.
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('three', 3)
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->usort(function ($a, $b) {
+    return $a <=> $b;
+});    
+    
+$fluentArray->all();
+// ['one' => 1, 'two' => 2, 'three' => 3]    
+```
+
 #### values
 
+The `values` method retrieves all the values from [the storage array](#storage-array).
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$fluentArray->all();
+// [1, 2]    
+```
+
 #### when
+
+The `when` method executes the given callback, if the first argument is equivalent to `true`.  
+
+```php
+$fluentArray = new FluentArray();
+
+$fluentArray->when(true, function () use ($fluentArray) {
+    $fluentArray->set('one', 1);
+});
+
+$fluentArray->when(false, function () use ($fluentArray) {
+    $fluentArray->set('two', 2);
+});
+
+$fluentArray->when(
+    function () {
+        return true;
+    }, 
+    function () use ($fluentArray) {
+        $fluentArray->set('three', 3);
+    }
+);
+
+$fluentArray->all();
+// ['one' => 1, 'three' => 3]
+```
+
+You can specify a default callback, that will be executed,
+if the first argument is equivalent to `false`.
+
+```php
+$fluentArray = new FluentArray();
+
+$fluentArray->when(
+    false, 
+    function () use ($fluentArray) {
+        $fluentArray->set('one', 1);
+    },
+    function () use ($fluentArray) {
+        $fluentArray->set('two', 2);
+    }
+);
+
+$fluentArray->all();
+// ['two' => 2]
+```
 
 ## Dynamic methods
 

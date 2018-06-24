@@ -29,6 +29,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method executes the given callback, if the first argument is equivalent to `true`.
      * @param callable|bool $condition
      * @param callable $callback
      * @param callable|null $default
@@ -46,6 +47,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method checks if the given key exists in the storage array.
      * @param string $key
      * @return bool
      */
@@ -55,23 +57,25 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method sets the given key and value in the storage array.
      * @param string $key
      * @param mixed $value
      * @return self
      */
-    public function set(string $key, $value)
+    public function set(string $key, $value): self
     {
         $this->storage[$key] = is_array($value) ? static::fromArray($value) : $value;
         return $this;
     }
 
     /**
+     * The method sets the given key and value in the storage array, if the first argument is equivalent to `true`.
      * @param callable|bool $condition
      * @param string $key
      * @param mixed $value
      * @return self
      */
-    public function setWhen($condition, string $key, $value)
+    public function setWhen($condition, string $key, $value): self
     {
         return $this->when($condition, function () use ($key, $value) {
             return $this->set($key, $value);
@@ -79,6 +83,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method retrieves the item value from the storage array, that corresponds the given key.
      * @param string $key
      * @return mixed
      */
@@ -88,21 +93,23 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
-     * @param $value
+     * The method appends the given value to the storage array.
+     * @param mixed $value
      * @return self
      */
-    public function push($value)
+    public function push($value): self
     {
         $this->storage[] = is_array($value) ? static::fromArray($value) : $value;
         return $this;
     }
 
     /**
+     * The method appends the given value to the storage array, if the first argument is equivalent to `true`.
      * @param callable|bool $condition
      * @param mixed $value
      * @return self
      */
-    public function pushWhen($condition, $value)
+    public function pushWhen($condition, $value): self
     {
         return $this->when($condition, function () use ($value) {
             return $this->push($value);
@@ -110,10 +117,11 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method removes the storage array value by the given key.
      * @param string $key
      * @return self
      */
-    public function unset(string $key)
+    public function unset(string $key): self
     {
         if ($this->has($key)) {
             unset($this->storage[$key]);
@@ -123,9 +131,10 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method removes all the items from the storage array.
      * @return self
      */
-    public function clean()
+    public function clean(): self
     {
         $this->storage = [];
         return $this;
@@ -179,6 +188,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method retrieves the first item value from the storage array.
      * @return mixed
      */
     public function first()
@@ -187,6 +197,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method retrieves the last item value from the storage array.
      * @return mixed
      */
     public function last()
@@ -195,6 +206,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method returns the storage array.
      * @return array
      */
     public function all(): array
@@ -203,10 +215,11 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method extracts item values from child fluent arrays to a new fluent array by the given key.
      * @param string $key
      * @return self
      */
-    public function pluck(string $key)
+    public function pluck(string $key): self
     {
         $config = clone $this->config();
         $fluentArray = new static($config);
@@ -222,6 +235,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method retrieves all the keys from the storage array.
      * @return array
      */
     public function keys(): array
@@ -230,6 +244,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method retrieves all the values from the storage array.
      * @return array
      */
     public function values(): array
@@ -238,6 +253,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method returns amount of items in the storage array.
      * @return int
      */
     public function count(): int
@@ -246,60 +262,66 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method sorts the storage array in ascending order.
      * @param int $sortFlags
      * @return self
      */
-    public function sort(int $sortFlags = SORT_REGULAR)
+    public function sort(int $sortFlags = SORT_REGULAR): self
     {
         asort($this->storage, $sortFlags);
         return $this;
     }
 
     /**
+     * The method sorts the storage array in descending order.
      * @param int $sortFlags
      * @return self
      */
-    public function rsort(int $sortFlags = SORT_REGULAR)
+    public function rsort(int $sortFlags = SORT_REGULAR): self
     {
         arsort($this->storage, $sortFlags);
         return $this;
     }
 
     /**
+     * The method sorts the storage array using the given comparison function.
      * @param callable $callback
      * @return self
      */
-    public function usort(callable $callback)
+    public function usort(callable $callback): self
     {
-        usort($this->storage, $callback);
+        uasort($this->storage, $callback);
         return $this;
     }
 
     /**
+     * The method sorts the storage array by keys in ascending order.
      * @param int $sortFlags
      * @return self
      */
-    public function ksort(int $sortFlags = SORT_REGULAR)
+    public function ksort(int $sortFlags = SORT_REGULAR): self
     {
         ksort($this->storage, $sortFlags);
         return $this;
     }
 
     /**
+     * The method sorts the storage array by keys in descending order.
      * @param int $sortFlags
      * @return self
      */
-    public function krsort(int $sortFlags = SORT_REGULAR)
+    public function krsort(int $sortFlags = SORT_REGULAR): self
     {
         krsort($this->storage, $sortFlags);
         return $this;
     }
 
     /**
+     * The method applies the given callback to all items in the storage array and returns a new fluent array.
      * @param callable $callback
      * @return self
      */
-    public function map(callable $callback)
+    public function map(callable $callback): self
     {
         $keys = $this->keys();
         $values = array_map($callback, $this->values(), $this->keys());
@@ -316,10 +338,12 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method iterates over the items in the storage array.
+     * To stop the iteration return `false` from the callback.
      * @param callable $callback
      * @return self
      */
-    public function each(callable $callback)
+    public function each(callable $callback): self
     {
         foreach ($this->storage as $key => $value) {
             if ($callback($value, $key) === false) {
@@ -331,10 +355,12 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method filters the storage array using the given callback.
+     * Return `false` from the callback to remove an item.
      * @param callable|null $callback
      * @return self
      */
-    public function filter(callable $callback = null)
+    public function filter(callable $callback = null): self
     {
         $config = clone $this->config();
         $fluentArray = new static($config);
@@ -349,10 +375,11 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method converts array to a fluent array.
      * @param array $array
      * @return self
      */
-    public static function fromArray(array $array)
+    public static function fromArray(array $array): self
     {
         $fluentArray = new static();
 
@@ -364,6 +391,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method converts a fluent array to an array.
      * @return array
      */
     public function toArray(): array
@@ -376,16 +404,18 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * The method converts JSON to a fluent array.
      * @param string $json
      * @return self
      */
-    public static function fromJson(string $json)
+    public static function fromJson(string $json): self
     {
         $array = json_decode($json, true);
         return static::fromArray($array);
     }
 
     /**
+     * The method converts a fluent array to JSON.
      * @return string
      */
     public function toJson(): string
@@ -452,7 +482,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
      * @param string $key
      * @return string
      */
-    protected function transformKey(string $key)
+    protected function transformKey(string $key): string
     {
         $defaultConfig = static::defaultConfig();
         $config = $this->config();
@@ -533,7 +563,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     /**
      * @return self
      */
-    protected static function defaultConfig()
+    protected static function defaultConfig(): self
     {
         return (new static())
             ->set('naming_strategy', new UnderscoreStrategy());

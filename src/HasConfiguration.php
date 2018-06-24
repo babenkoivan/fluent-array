@@ -15,6 +15,7 @@ trait HasConfiguration
     private $config;
 
     /**
+     * The method allows you to set or retrieve global configuration.
      * @param FluentArray|null $globalConfig
      * @return mixed
      */
@@ -32,6 +33,7 @@ trait HasConfiguration
     }
 
     /**
+     * The method allows you to set or retrieve local configuration.
      * @param FluentArray|null $config
      * @return mixed
      */

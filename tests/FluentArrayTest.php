@@ -368,7 +368,7 @@ class FluentArrayTest extends TestCase
     public function testUsortMethod()
     {
         $sourceFluentArray = (new FluentArray())
-            ->push(7)
+            ->set('foo', 7)
             ->push(1)
             ->push(5);
 
@@ -377,7 +377,7 @@ class FluentArrayTest extends TestCase
         });
 
         $this->assertSame(
-            [1, 5, 7],
+            [1, 5, 'foo' => 7],
             $resultFluentArray->toArray()
         );
     }
