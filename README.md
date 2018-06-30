@@ -70,7 +70,7 @@ $fluentArray->all();
 
 #### clean
 
-The `clean` method removes all the items from [the storage array](#storage-array). 
+The `clean` method removes all keys and values from [the storage array](#storage-array). 
 
 ```php
 $fluentArray = (new FluentArray())
@@ -101,7 +101,7 @@ $fluentArray->config()->get('naming_strategy');
 
 #### count
 
-The `count` method returns amount of items in [the storage array](#storage-array).
+The `count` method returns amount of values in [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -115,7 +115,7 @@ $fluentArray->count();
 
 #### each
 
-The `each` method iterates over the items in [the storage array](#storage-array).
+The `each` method iterates over the values in [the storage array](#storage-array).
 
 ```php
 $odds = [];
@@ -161,7 +161,7 @@ $counter;
 #### filter
 
 The `filter` method filters [the storage array](#storage-array) using the given callback.
-Return `false` from the callback to remove an item.
+Return `false` from the callback to remove a value.
 
 ```php
 $sourceFluentArray = (new FluentArray())
@@ -176,7 +176,7 @@ $filteredFluentArray->all();
 // ['two' => 2]    
 ```  
 
-If callback is not specified, all items, that can be converted to `false` will be removed.
+If callback is not specified, all values, that can be converted to `false` will be removed.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -190,7 +190,7 @@ $fluentArray->filter()->all();
 
 #### first
 
-The `first` method retrieves the first item value from [the storage array](#storage-array).
+The `first` method retrieves the first value from [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -229,7 +229,7 @@ $fluentArray->all();
 
 #### get
 
-The `get` method retrieves the item value from [the storage array](#storage-array), 
+The `get` method retrieves the value from [the storage array](#storage-array), 
 that corresponds the given key.
 
 ```php
@@ -316,7 +316,7 @@ $fluentArray->ksort(SORT_STRING)->all();
 
 #### last
 
-The `last` method retrieves the last item value from [the storage array](#storage-array).
+The `last` method retrieves the last value from [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -329,7 +329,7 @@ $fluentArray->last();
 
 #### map
 
-The `map` method applies the given callback to all items in [the storage array](#storage-array) 
+The `map` method applies the given callback to all values in [the storage array](#storage-array) 
 and returns a new fluent array. 
 
 ```php
@@ -347,7 +347,7 @@ $resultFluentArray->all();
 
 #### pluck
 
-The `pluck` method extracts item values from child fluent arrays to a new fluent array by the given key.
+The `pluck` method extracts values from child fluent arrays to a new fluent array by the given key.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -564,6 +564,238 @@ $fluentArray->all();
 
 ## Dynamic methods
 
+* [Dynamic setter](#dynamic-setter)
+* [Dynamic getter](#dynamic-getter)
+* [Dynamic has](#dynamic-has)
+* [Dynamic pluck](#dynamic-pluck)
+* [Dynamic unset](#dynamic-unset)
+
+#### Dynamic setter
+
+You can also set a key-value pair in [the storage array](#storage-array) using the dynamic setter.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one(1)
+    ->two(2);
+    
+$fluentArray->all();
+// ['one' => 1, 'two' => 2]    
+```
+
+If you want to set a key, that is reserved for a method name, you can escape it.
+
+```php
+$fluentArray = (new FluentArray())
+    ->{'\set'}(1)
+    ->{'\get'}(2);
+    
+$fluentArray->all();
+// ['set' => 1, 'get' => 2]    
+```
+
+Add `When` to set the given value if the first argument is equivalent to `true`.
+
+```php
+$fluentArray = (new FluentArray())
+    ->oneWhen(true, 1)
+    ->twoWhen(false, 2)
+    ->threeWhen(function () { return true; }, 3);
+    
+$fluentArray->all();
+// ['one' => 1, 'three' => 3]    
+```
+
+You can also chain creation of child fluent arrays.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one()
+        ->two(3)
+    ->end()
+    ->three()
+        ->four(4)
+        ->five(5)
+    ->end();
+    
+$fluentArray->toArray();
+// ['one' => ['two' => 2], 'three' => ['four' => 4, 'five' => 5]]    
+``` 
+
+#### Dynamic getter
+
+To retrieve the value from [the storage array](#storage-array) you can use the dynamic getter.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one(1)
+    ->two(2);
+    
+$fluentArray->two();
+// 2    
+```
+
+#### Dynamic has
+
+To check if the key exists in [the storage array](#storage-array) you can use the dynamic `has` method.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one(1)
+    ->two(2);
+    
+$fluentArray->hasOne();
+// true
+
+$fluentArray->hasThree();
+// false    
+```
+
+#### Dynamic pluck
+
+To extract values from child fluent arrays you can use the dynamic `pluck` method.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one()
+        ->id(1)
+    ->end()
+    ->two()
+        ->id(2)
+    ->end();
+    
+$fluentArray->pluckId()->all();
+// [1, 2]   
+```
+
+#### Dynamic unset
+
+To remove [the storage array](#storage-array) value you can use the dynamic `unset` method.
+
+```php
+$fluentArray = (new FluentArray())
+    ->one(1)
+    ->two(2);
+    
+$fluentArray->unsetOne()->all();
+// ['two' => 2]    
+```
+
+## Macros
+
+
+
 ## Implemented interfaces
 
+* [Countable](#countable)
+* [Serializable](#serializable)
+* [ArrayAccess](#arrayaccess)
+* [IteratorAggregate](#iteratoraggregate)
+
+#### Countable 
+
+The `Countable` interface provides the `count` method support.
+[See more here](http://php.net/manual/en/class.countable.php).
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+count($fluentArray);
+// 2
+```
+
+#### Serializable 
+
+The `Serializable` interface provides serialization support.
+[See more here](http://php.net/manual/en/class.serializable.php).
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+$serialized = serialize($fluentArray);
+$unserialized = unserialize($serialized);
+
+$unserialized->all();
+// ['one' => 1, 'two' => 2]    
+```
+
+#### ArrayAccess 
+
+The `ArrayAccess` interface provides array access.
+[See more here](http://php.net/manual/en/class.arrayaccess.php).
+
+```php
+$fluentArray = new FluentArray();
+
+$fluentArray['one'] = 1;
+$fluentArray['two'] = 2;
+
+$fluentArray['two'];
+// 2
+```
+
+#### IteratorAggregate
+
+The `IteratorAggregate` interface provides iteration over [the storage array](#storage-array).
+[See more here](http://php.net/manual/en/class.iteratoraggregate.php).
+
+```php
+$fluentArray = (new FluentArray())
+    ->set('one', 1)
+    ->set('two', 2);
+    
+foreach ($fluentArray as $key => $value) {
+    $fluentArray->set($key, $value * 10);
+}    
+
+$fluentArray->all();
+// ['one' => 10, 'two' => 20]
+```
+
 ## Code formatting
+
+If you use `PhpStorm` and code auto formatting, you will likely face the issue, that the following code:
+
+```php
+$fluentArray = (new FluentArray())
+    ->one()
+        ->id(1)
+    ->end()
+    ->two()
+        ->id(2)
+    ->end();
+```  
+
+Will be transformed by `PhpStorm` to:
+
+```php
+$fluentArray = (new FluentArray())
+    ->one()
+    ->id(1)
+    ->end()
+    ->two()
+    ->id(2)
+    ->end();
+``` 
+
+Now the code is less readable, but luckily we can configure `PhpStorm` to not auto format this peace of code.
+To do so, open `PhpStorm` preferences, go to `Editor > Code Style` section and select option `Enable formatter markers in comments`.
+
+Now you can turn the formatter off for the specific part of your code:
+
+```php
+// @formatter:off
+$fluentArray = (new FluentArray())
+    ->one()
+        ->id(1)
+    ->end()
+    ->two()
+        ->id(2)
+    ->end();
+// @formatter:on
+```  
+
