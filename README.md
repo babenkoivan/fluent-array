@@ -2,9 +2,9 @@
 
 * [Introduction](#introduction)
 * [Configuration](#configuration) 
+* [Macros](#macros)
 * [Fixed methods](#fixed-methods) 
 * [Dynamic methods](#dynamic-methods) 
-* [Macros](#macros)
 * [Implemented interfaces](#implemented-interfaces) 
 * [Code Formatting](#code-formatting)
 
@@ -16,11 +16,120 @@
 
 ## Configuration
 
-#### Naming strategies
+Configuration allows you to change fluent array [behavior](#naming-strategies) and add [new functionality](#macros).
 
 #### Local scope
 
-### Global scope
+To set configuration to specific fluent array instance use local scope.
+
+```php
+$config = (clone FluentArray::globalConfig())
+    ->namingStrategy(new CamelCaseStrategy());
+
+$fluentArray = (new FluentArray($config))
+    ->one(1)
+    ->two(2);
+
+// alternatively you can set configuration, using the `config` method
+$fluentArray = (new FluentArray())
+    ->config($config)
+    ->one(1)
+    ->two(2);
+
+$fluentArray->all();
+// ['One' => 1, 'Two' => 2]
+```
+ 
+#### Global scope
+
+To set configuration for all fluent arrays use global scope.
+
+```php
+$globalConfig = FluentArray::globalConfig();
+
+$globalConfig->namingStrategy(new CamelCaseStrategy());
+
+$fluentArray = (new FluentArray())
+    ->one(1)
+    ->two(2);
+    
+$fluentArray->all();
+// ['One' => 1, 'Two' => 2]    
+```
+
+#### Macros
+
+You can use macros to extend a fluent array functionality. 
+It can be done via configuration in [global](#global-scope) or [local scope](#local-scope).
+
+```php
+$globalConfig = FluentArray::globalConfig();
+
+$globalConfig
+    ->macros()
+        ->format(function (string $key, int $decimals = 0) {
+            $value = $this->get($key);
+        
+            if (is_numeric($value)) {
+                return number_format($value, $decimals);
+            } else {
+                return $value;
+            }
+        })
+    ->end();
+    
+$fluentArray = (new FluentArray())
+    ->set('one', 10.567)
+    ->set('two', 2.89);
+    
+$fluentArray->format('one', 2);
+// 10.57
+
+$fluentArray->format('two', 1);
+// 2.9    
+```
+
+#### Naming strategies
+
+Naming strategies describe key transformation in [dynamic methods](#dynamic-methods).
+
+For example, we want all our keys to be underscored in [the storage array](#storage-array). 
+
+```php
+$config = (clone FluentArray::globalConfig())
+    ->namingStrategy(new UnderscoreStrategy());
+
+$fluentArray = (new FluentArray($config))
+    ->firstValue(1)
+    ->secondValue(2);
+
+$fluentArray->all();
+// ['first_value' => 1, 'second_value' => 2]
+```
+
+Now we want them to be camel-cased.
+
+```php
+$config = (clone FluentArray::globalConfig())
+    ->namingStrategy(new CamelCaseStrategy());
+
+$fluentArray = (new FluentArray($config))
+    ->firstValue(1)
+    ->secondValue(2);
+
+$fluentArray->all();
+// ['first_value' => 1, 'second_value' => 2]
+```
+
+The supported naming strategies are:
+
+Strategy | Example
+---------|--------
+CamelCaseStrategy | `MyValue`
+NullStrategy | `myValue`
+UnderscoreStrategy | `first_value`
+
+The `UnderscoreStrategy` is used by default.
 
 ## Fixed methods
 
@@ -679,38 +788,6 @@ $fluentArray = (new FluentArray())
     
 $fluentArray->unsetOne()->all();
 // ['two' => 2]    
-```
-
-## Macros
-
-You can use macros to extend a fluent array functionality. 
-It can be done via configuration in [global](#global-scope) or [local scope](#local-scope).
-
-```php
-$globalConfig = FluentArray::globalConfig();
-
-$globalConfig
-    ->macros()
-        ->format(function (string $key, int $decimals = 0) {
-            $value = $this->get($key);
-        
-            if (is_numeric($value)) {
-                return number_format($value, $decimals);
-            } else {
-                return $value;
-            }
-        })
-    ->end();
-    
-$fluentArray = (new FluentArray())
-    ->set('one', 10.567)
-    ->set('two', 2.89);
-    
-$fluentArray->format('one', 2);
-// 10.57
-
-$fluentArray->format('two', 1);
-// 2.9    
 ```
 
 ## Implemented interfaces
