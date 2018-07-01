@@ -16,9 +16,9 @@
 
 ## Configuration
 
-### Naming strategies
+#### Naming strategies
 
-### Local scope
+#### Local scope
 
 ### Global scope
 
@@ -683,7 +683,35 @@ $fluentArray->unsetOne()->all();
 
 ## Macros
 
+You can use macros to extend a fluent array functionality. 
+It can be done via configuration in [global](#global-scope) or [local scope](#local-scope).
 
+```php
+$globalConfig = FluentArray::globalConfig();
+
+$globalConfig
+    ->macros()
+        ->format(function (string $key, int $decimals = 0) {
+            $value = $this->get($key);
+        
+            if (is_numeric($value)) {
+                return number_format($value, $decimals);
+            } else {
+                return $value;
+            }
+        })
+    ->end();
+    
+$fluentArray = (new FluentArray())
+    ->set('one', 10.567)
+    ->set('two', 2.89);
+    
+$fluentArray->format('one', 2);
+// 10.57
+
+$fluentArray->format('two', 1);
+// 2.9    
+```
 
 ## Implemented interfaces
 
@@ -798,4 +826,3 @@ $fluentArray = (new FluentArray())
     ->end();
 // @formatter:on
 ```  
-
