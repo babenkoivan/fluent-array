@@ -125,6 +125,25 @@ class FluentArrayTest extends TestCase
         $this->assertSame(1, $fluentArray->get(0));
         $this->assertInstanceOf(FluentArray::class, $fluentArray->get(1));
         $this->assertSame('bar', $fluentArray->get(1)->get('foo'));
+
+        // @formatter:off
+        $fluentArray = (new FluentArray())
+            ->push()
+                ->one(1)
+                ->two(2)
+            ->end()
+            ->push()
+                ->three(3)
+                ->four(4)
+            ->end();
+        // @formatter:on
+
+        $this->assertInstanceOf(FluentArray::class, $fluentArray->get(0));
+        $this->assertSame(1, $fluentArray->get(0)['one']);
+        $this->assertSame(2, $fluentArray->get(0)['two']);
+        $this->assertInstanceOf(FluentArray::class, $fluentArray->get(1));
+        $this->assertSame(3, $fluentArray->get(1)['three']);
+        $this->assertSame(4, $fluentArray->get(1)['four']);
     }
 
     public function testPushWhenMethod()
@@ -138,6 +157,23 @@ class FluentArrayTest extends TestCase
             ['key' => 'value', 'foo'],
             $fluentArray->toArray()
         );
+
+        // @formatter:off
+        $fluentArray = (new FluentArray())
+            ->pushWhen(true)
+                ->one(1)
+                ->two(2)
+            ->end()
+            ->pushWhen(false)
+                ->three(3)
+                ->four(4)
+            ->end();
+        // @formatter:on
+
+        $this->assertInstanceOf(FluentArray::class, $fluentArray->get(0));
+        $this->assertSame(1, $fluentArray->get(0)['one']);
+        $this->assertSame(2, $fluentArray->get(0)['two']);
+        $this->assertNull($fluentArray->get(1));
     }
 
     public function testUnsetMethod()

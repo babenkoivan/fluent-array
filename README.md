@@ -10,9 +10,73 @@
 
 ## Introduction
 
+The fluent array provides you with a convenient chainable interface. 
+If you like object-oriented syntax or you just want to have more readable array declaration, the fluent array is at your service.  
+
 #### Basic usage
 
+```php
+$order = (new FluentArray())
+    ->user()
+        ->id(1)
+        ->name('John')
+    ->end()
+    ->coupon('SALE10')
+    ->status('delivered')
+    ->products()
+        ->push()
+            ->id(1)
+            ->name('iPhone X')
+            ->price(1200)
+        ->end()
+        ->push()
+            ->id(2)
+            ->name('Beats By Dre Studio3')
+            ->price(360)
+        ->end()
+    ->end();
+```
+
+If we convert the fluent array to an associative array, by calling `$order->toArray()`,
+we will get the following output:
+
+```php
+[
+    'user' => [
+        'id' => 1,
+        'name' => 'John'
+    ],
+    'coupon' => 'SALE10',
+    'status' => 'delivered',
+    'products' => [
+        [
+            'id' => 1,
+            'name' => 'iPhone X',
+            'price' => 1200
+        ],
+        [
+            'id' => 2,
+            'name' => 'Beats By Dre Studio3'
+            'price' => 360
+        ]
+    ]
+]
+```
+
 #### Storage array
+
+Every time you call [set](#set) or [get]($get), or any other method, that modifies or retrieves the state, 
+you communicate with internal storage of fluent array.
+
+```php
+$fluentArray = new FluentArray();
+
+// we set the key `one` and the corresponding value `1` in the storage 
+$fluentArray->set('one', 1);
+    
+// we get the value, that corresponds the key `one` from the storage
+$fluentArray->get('one');
+```
 
 ## Configuration
 
@@ -480,6 +544,22 @@ $fluentArray->all();
 // [1, 2]    
 ```
 
+Another way of using the `push` method:
+
+```php
+$fluentArray = (new FluentArray())
+    ->push()
+        ->one(1)
+        ->two(2)
+    ->end()
+    ->push()
+        ->three(3)
+    ->end();
+    
+$fluentArray->toArray();
+// [['one' => 1, 'two' => 2], ['three' => 3]]    
+```
+
 #### pushWhen
 
 The `pushWhen` method appends the given value to [the storage array](#storage-array), 
@@ -493,6 +573,24 @@ $fluentArray = (new FluentArray())
     
 $fluentArray->all();
 // [1, 3]    
+```
+
+Another way of using the `pushWhen` method:
+
+```php
+$fluentArray = (new FluentArray())
+    ->pushWhen(true)
+        ->one(1)
+    ->end(false)
+    ->pushWhen(false)
+        ->two(2)
+    ->end()
+    ->pushWhen(function () { return true; })
+        ->three(3)
+    ->end();
+    
+$fluentArray->toArray();
+// [['one' => 1], ['three' => 3]]    
 ```
 
 #### rsort

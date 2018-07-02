@@ -94,26 +94,47 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
 
     /**
      * The method appends the given value to the storage array.
-     * @param mixed $value
+     * @param mixed|null $value
      * @return self
      */
-    public function push($value): self
+    public function push($value = null): self
     {
-        $this->storage[] = is_array($value) ? static::fromArray($value) : $value;
+        $self = $this;
+
+        if (is_null($value)) {
+            return $this->deriveWithMacros('end', function () use ($self, $value) {
+                $self->push($this);
+                return $self;
+            });
+        } elseif (is_array($value)) {
+            $this->storage[] = static::fromArray($value);
+        } else {
+            $this->storage[] = $value;
+        }
+
         return $this;
     }
 
     /**
      * The method appends the given value to the storage array, if the first argument is equivalent to `true`.
      * @param callable|bool $condition
-     * @param mixed $value
+     * @param mixed|null $value
      * @return self
      */
-    public function pushWhen($condition, $value): self
+    public function pushWhen($condition, $value = null): self
     {
-        return $this->when($condition, function () use ($value) {
-            return $this->push($value);
-        });
+        $self = $this;
+
+        if (is_null($value)) {
+            return $this->deriveWithMacros('end', function () use ($self, $condition) {
+                $self->pushWhen($condition, $this);
+                return $self;
+            });
+        } else {
+            return $this->when($condition, function () use ($value) {
+                return $this->push($value);
+            });
+        }
     }
 
     /**
@@ -221,8 +242,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
      */
     public function pluck(string $key): self
     {
-        $config = clone $this->config();
-        $fluentArray = new static($config);
+        $fluentArray = $this->derive();
 
         $this->each(function ($item) use ($key, $fluentArray) {
             if ($item instanceof static && $item->has($key)) {
@@ -326,8 +346,7 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
         $keys = $this->keys();
         $values = array_map($callback, $this->values(), $this->keys());
 
-        $config = clone $this->config();
-        $fluentArray = new static($config);
+        $fluentArray = $this->derive();
 
         foreach ($values as $index => $value) {
             $key = $keys[$index];
@@ -362,10 +381,9 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
      */
     public function filter(callable $callback = null): self
     {
-        $config = clone $this->config();
-        $fluentArray = new static($config);
+        $fluentArray = $this->derive();
 
-        $this->each(function($value, $key) use ($callback, $fluentArray) {
+        $this->each(function ($value, $key) use ($callback, $fluentArray) {
             if (isset($callback) ? $callback($value, $key) : !empty($value)) {
                 $fluentArray->set($key, $value);
             }
@@ -479,6 +497,35 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     }
 
     /**
+     * @return self
+     */
+    protected function derive(): self
+    {
+        $config = clone $this->config();
+        return new static($config);
+    }
+
+    /**
+     * @param string $name
+     * @param callable $callback
+     * @return self
+     */
+    protected function deriveWithMacros(string $name, callable $callback): self
+    {
+        $config = clone $this->config();
+
+        if (!$config->has('macros')) {
+            $config->set('macros', new static());
+        }
+
+        $config
+            ->get('macros')
+            ->set($name, $callback);
+
+        return new static($config);
+    }
+
+    /**
      * @param string $key
      * @return string
      */
@@ -523,9 +570,9 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
     /**
      * @param string $method
      * @param array $args
-     * @return mixed
+     * @return self
      */
-    protected function callSet(string $method, array $args)
+    protected function callSet(string $method, array $args): self
     {
         $self = $this;
 
@@ -536,20 +583,10 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
 
         switch (count($args)) {
             case 0:
-                $config = clone $this->config();
-
-                if (!$config->has('macros')) {
-                    $config->set('macros', new static());
-                }
-
-                $config
-                    ->get('macros')
-                    ->set('end', function () use ($self, $condition, $key) {
-                        $self->setWhen($condition, $key, $this);
-                        return $self;
-                    });
-
-                return new static($config);
+                return $this->deriveWithMacros('end', function () use ($self, $condition, $key) {
+                    $self->setWhen($condition, $key, $this);
+                    return $self;
+                });
                 break;
             case 1:
                 return $this->setWhen($condition, $key, $args[0]);
