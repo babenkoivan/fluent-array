@@ -2,6 +2,7 @@
 
 [![Packagist](https://img.shields.io/packagist/v/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
 [![Packagist](https://img.shields.io/packagist/dt/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
 [![Donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/ivanbabenko)
 
 * [Introduction](#introduction)

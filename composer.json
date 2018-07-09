@@ -1,6 +1,14 @@
 {
     "name": "babenkoivan/fluent-array",
     "description": "The package provides fluent interface for array management",
+    "keywords": [
+        "fluent-interface",
+        "chainable",
+        "array-object",
+        "array-helper",
+        "associative-array",
+        "array"
+    ],
     "type": "library",
     "license": "MIT",
     "authors": [
