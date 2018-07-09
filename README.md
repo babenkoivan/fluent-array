@@ -1,6 +1,11 @@
 # FluentArray
 
+[![Packagist](https://img.shields.io/packagist/v/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
+[![Packagist](https://img.shields.io/packagist/dt/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
+[![Donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/ivanbabenko)
+
 * [Introduction](#introduction)
+* [Installation](#installation)
 * [Configuration](#configuration) 
 * [Macros](#macros)
 * [Fixed methods](#fixed-methods) 
@@ -10,8 +15,9 @@
 
 ## Introduction
 
-The fluent array provides you with a convenient chainable interface. 
-If you like object-oriented syntax or you just want to have more readable array declaration, the fluent array is at your service.  
+The fluent array library provides you with a convenient chainable interface. 
+If you like object-oriented syntax or you just want to have more readable array declaration,
+the fluent array is at your service.  
 
 #### Basic usage
 
@@ -66,7 +72,7 @@ we will get the following output:
 #### Storage array
 
 Every time you call [set](#set) or [get]($get), or any other method, that modifies or retrieves the state, 
-you communicate with internal storage of fluent array.
+you update the internal storage of fluent array.
 
 ```php
 $fluentArray = new FluentArray();
@@ -78,13 +84,23 @@ $fluentArray->set('one', 1);
 $fluentArray->get('one');
 ```
 
+## Installation
+
+Use composer to install the library:
+
+```bash
+composer require babenkoivan/fluent-array:\*@beta
+```
+
+Note, that the currently available version of the library is unstable (beta).
+
 ## Configuration
 
-Configuration allows you to change fluent array [behavior](#naming-strategies) and add [new functionality](#macros).
+The configuration allows you to change a fluent array [behavior](#naming-strategies) and add [new functionality](#macros).
 
 #### Local scope
 
-To set configuration to specific fluent array instance use local scope.
+To configure a specific fluent array instance use local scope.
 
 ```php
 $config = (clone FluentArray::globalConfig())
@@ -106,7 +122,7 @@ $fluentArray->all();
  
 #### Global scope
 
-To set configuration for all fluent arrays use global scope.
+To configure all fluent arrays use global scope.
 
 ```php
 $globalConfig = FluentArray::globalConfig();
@@ -191,9 +207,9 @@ Strategy | Example
 ---------|--------
 CamelCaseStrategy | `MyValue`
 NullStrategy | `myValue`
-UnderscoreStrategy | `first_value`
+UnderscoreStrategy | `my_value`
 
-The `UnderscoreStrategy` is used by default.
+The default naming strategy is `UnderscoreStrategy`. 
 
 ## Fixed methods
 
@@ -274,7 +290,7 @@ $fluentArray->config()->get('naming_strategy');
 
 #### count
 
-The `count` method returns amount of values in [the storage array](#storage-array).
+The `count` method returns the amount of values in [the storage array](#storage-array).
 
 ```php
 $fluentArray = (new FluentArray())
@@ -376,7 +392,7 @@ $fluentArray->first();
 
 #### fromArray
 
-The `fromArray` method converts array to a fluent array.
+The `fromArray` method converts an array to a fluent array.
 
 ```php
 $array = ['one' => 1, 'two' => 2];
@@ -520,7 +536,7 @@ $resultFluentArray->all();
 
 #### pluck
 
-The `pluck` method extracts values from child fluent arrays to a new fluent array by the given key.
+The `pluck` method extracts values with the given key, from child fluent arrays to a new fluent array.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -779,7 +795,7 @@ $fluentArray->all();
 
 #### Dynamic setter
 
-You can also set a key-value pair in [the storage array](#storage-array) using the dynamic setter.
+You can also set a key-value pair in [the storage array](#storage-array) using a dynamic setter.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -790,7 +806,7 @@ $fluentArray->all();
 // ['one' => 1, 'two' => 2]    
 ```
 
-If you want to set a key, that is reserved for a method name, you can escape it.
+If you want to set the key, that is reserved for a method name, you can escape it.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -831,7 +847,7 @@ $fluentArray->toArray();
 
 #### Dynamic getter
 
-To retrieve the value from [the storage array](#storage-array) you can use the dynamic getter.
+To retrieve a value from [the storage array](#storage-array) you can use a dynamic getter.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -844,7 +860,7 @@ $fluentArray->two();
 
 #### Dynamic has
 
-To check if the key exists in [the storage array](#storage-array) you can use the dynamic `has` method.
+To check if a key exists in [the storage array](#storage-array) you can use a dynamic `has` method.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -860,7 +876,7 @@ $fluentArray->hasThree();
 
 #### Dynamic pluck
 
-To extract values from child fluent arrays you can use the dynamic `pluck` method.
+To extract values from child fluent arrays you can use a dynamic `pluck` method.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -877,7 +893,7 @@ $fluentArray->pluckId()->all();
 
 #### Dynamic unset
 
-To remove [the storage array](#storage-array) value you can use the dynamic `unset` method.
+To remove a value from [the storage array](#storage-array) you can use a dynamic `unset` method.
 
 ```php
 $fluentArray = (new FluentArray())
@@ -943,7 +959,7 @@ $fluentArray['two'];
 
 #### IteratorAggregate
 
-The `IteratorAggregate` interface provides iteration over [the storage array](#storage-array).
+The `IteratorAggregate` interface enables iteration over [the storage array](#storage-array).
 [See more here](http://php.net/manual/en/class.iteratoraggregate.php).
 
 ```php
@@ -985,8 +1001,8 @@ $fluentArray = (new FluentArray())
     ->end();
 ``` 
 
-Now the code is less readable, but luckily we can configure `PhpStorm` to not auto format this peace of code.
-To do so, open `PhpStorm` preferences, go to `Editor > Code Style` section and select option `Enable formatter markers in comments`.
+Now the code is less readable, but luckily we can configure `PhpStorm` to disable auto formatting the specified peace of code.
+To do so, open `PhpStorm` preferences, go to the `Editor > Code Style` section and select option `Enable formatter markers in comments`.
 
 Now you can turn the formatter off for the specific part of your code:
 
