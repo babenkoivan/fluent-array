@@ -90,7 +90,7 @@ $fluentArray->get('one');
 Use composer to install the library:
 
 ```bash
-composer require babenkoivan/fluent-array:\*@beta
+composer require babenkoivan/fluent-array:@beta
 ```
 
 Note, that the currently available version of the library is unstable (beta).
