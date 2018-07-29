@@ -574,8 +574,6 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
      */
     protected function callSet(string $method, array $args): self
     {
-        $self = $this;
-
         preg_match('/^(\\\)?(.+?)(When)?$/', $method, $match);
 
         $key = $this->transformKey($match[2]);
@@ -583,10 +581,14 @@ class FluentArray implements Configurable, Countable, Serializable, ArrayAccess,
 
         switch (count($args)) {
             case 0:
-                return $this->deriveWithMacros('end', function () use ($self, $condition, $key) {
-                    $self->setWhen($condition, $key, $this);
+                $self = $this;
+
+                $fluentArray = $this->deriveWithMacros('end', function () use ($self, $condition, $key) {
                     return $self;
                 });
+
+                $this->setWhen($condition, $key, $fluentArray);
+                return $fluentArray;
                 break;
             case 1:
                 return $this->setWhen($condition, $key, $args[0]);
