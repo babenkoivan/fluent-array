@@ -7,12 +7,12 @@ trait HasConfiguration
     /**
      * @var FluentArray
      */
-    private static $globalConfig;
+    protected static $globalConfig;
 
     /**
      * @var FluentArray
      */
-    private $config;
+    protected $config;
 
     /**
      * The method allows you to set or retrieve global configuration.
