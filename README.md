@@ -94,8 +94,6 @@ Use composer to install the library:
 composer require babenkoivan/fluent-array
 ```
 
-Note, that the currently available version of the library is unstable (beta).
-
 ## Configuration
 
 The configuration allows you to change a fluent array [behavior](#naming-strategies) and add [new functionality](#macros).
