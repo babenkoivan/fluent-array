@@ -1,4 +1,7 @@
 language: php
 
+install:
+  - composer install --no-interaction
+
 php:
   - '7.0'
