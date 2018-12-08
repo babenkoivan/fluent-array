@@ -2,6 +2,7 @@
 
 [![Packagist](https://img.shields.io/packagist/v/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
 [![Packagist](https://img.shields.io/packagist/dt/babenkoivan/fluent-array.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
+[![Build Status](https://travis-ci.com/babenkoivan/fluent-array.svg?branch=master)](https://travis-ci.com/babenkoivan/fluent-array)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://packagist.org/packages/babenkoivan/fluent-array)
 [![Donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/ivanbabenko)
 
@@ -90,7 +91,7 @@ $fluentArray->get('one');
 Use composer to install the library:
 
 ```bash
-composer require babenkoivan/fluent-array:@beta
+composer require babenkoivan/fluent-array
 ```
 
 Note, that the currently available version of the library is unstable (beta).
